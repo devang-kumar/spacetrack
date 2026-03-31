@@ -1,0 +1,141 @@
+<div class="max-w-6xl mx-auto py-6 sm:py-12">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center space-x-2 text-xs sm:text-sm text-gray-400 mb-4 overflow-hidden">
+        <a href="/" class="hover:text-blue-400 flex-shrink-0">Home</a>
+        <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path></svg>
+        <span class="text-white truncate"><%= launch.name %></span>
+    </nav>
+
+    <%- include('partials/data-timeline', {
+        sources: [launch.isGlobal ? 'll2' : 'spacex'],
+        pageNote: launch.isGlobal ? 'Launch Library 2' : 'SpaceX API'
+    }) %>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6 sm:space-y-8">
+            <!-- Header -->
+            <section class="bg-black/40 backdrop-blur-xl border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-3xl">
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 mb-6">
+                    <div class="w-28 h-28 sm:w-40 sm:h-40 flex-shrink-0 bg-white/5 p-4 sm:p-6 rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden">
+                        <% if (launch.image || (launch.links && launch.links.patch && launch.links.patch.large)) { %>
+                            <img src="<%= launch.image || launch.links.patch.large %>" alt="<%= launch.name %>" class="w-full h-full object-contain">
+                        <% } else { %>
+                            <svg class="w-14 h-14 text-white/10" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
+                        <% } %>
+                    </div>
+                    <div class="flex-1 text-center sm:text-left w-full">
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-3">
+                            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold font-space leading-tight"><%= launch.name %></h1>
+                            <% const status = launch.status ? launch.status.abbrev : (launch.success ? 'SUCCESS' : (launch.upcoming ? 'UPCOMING' : 'FAILED')) %>
+                            <span class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold <%= status === 'Success' || status === 'SUCCESS' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : status === 'Upcoming' || status === 'UPCOMING' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30' %>">
+                                <%= status.toUpperCase() %>
+                            </span>
+                        </div>
+                        <p class="text-sm sm:text-base text-gray-400 mb-4">
+                            <%= new Date(launch.window_start || launch.net || launch.date_utc).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }) %>
+                        </p>
+                        <div class="flex flex-wrap justify-center sm:justify-start gap-3">
+                            <% if (launch.vidURLs && launch.vidURLs.length > 0) { %>
+                                <a href="<%= launch.vidURLs[0].url %>" target="_blank" class="bg-red-600 px-4 py-2 rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2 text-sm">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                                    Watch Stream
+                                </a>
+                            <% } else if (launch.links && launch.links.webcast) { %>
+                                <a href="<%= launch.links.webcast %>" target="_blank" class="bg-red-600 px-4 py-2 rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2 text-sm">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                                    Watch Stream
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mission Summary -->
+                <div class="bg-gradient-to-br from-blue-900/10 to-transparent p-4 sm:p-6 rounded-2xl border border-blue-500/20">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="p-1.5 bg-blue-500 rounded-lg flex-shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"></path></svg>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold">Mission Summary</h3>
+                    </div>
+                    <div id="ai-summary" class="text-gray-300 leading-relaxed italic text-sm sm:text-base">Generating summary...</div>
+                </div>
+            </section>
+
+            <!-- Overview -->
+            <section>
+                <h3 class="text-xl sm:text-2xl font-bold font-space mb-4">Mission <span class="text-blue-500">Overview</span></h3>
+                <p class="text-sm sm:text-base text-gray-300 leading-relaxed bg-white/5 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10">
+                    <%= launch.mission ? launch.mission.description : (launch.details || 'No additional mission details provided for this flight.') %>
+                </p>
+            </section>
+
+            <!-- Map -->
+            <% if ((launch.pad && launch.pad.latitude) || (launch.launchpadDetails && launch.launchpadDetails.latitude)) { %>
+            <section>
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1 mb-4">
+                    <h3 class="text-xl sm:text-2xl font-bold font-space">Launch <span class="text-blue-500">Location</span></h3>
+                    <span class="text-gray-400 font-mono text-xs sm:text-sm"><%= launch.pad ? launch.pad.full_name : launch.launchpadDetails.full_name %></span>
+                </div>
+                <div id="launch-map" class="h-56 sm:h-80 rounded-2xl sm:rounded-3xl border border-white/10 overflow-hidden"
+                     data-lat="<%= launch.pad ? launch.pad.latitude : launch.launchpadDetails.latitude %>"
+                     data-lng="<%= launch.pad ? launch.pad.longitude : launch.launchpadDetails.longitude %>">
+                </div>
+            </section>
+            <% } %>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-5 sm:space-y-6">
+            <% if (launch.rocketDetails || (launch.rocket && launch.rocket.configuration)) { %>
+            <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-2xl sm:rounded-3xl lg:sticky lg:top-24">
+                <h4 class="text-base font-bold mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Rocket Details
+                </h4>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-gray-400">Name</span>
+                        <span class="font-bold text-right ml-2"><%= launch.rocketDetails ? launch.rocketDetails.name : launch.rocket.configuration.name %></span>
+                    </div>
+                    <% if (launch.rocketDetails) { %>
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-gray-400">Type</span>
+                        <span class="font-bold uppercase"><%= launch.rocketDetails.type %></span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-gray-400">Success Rate</span>
+                        <span class="font-bold text-green-400"><%= launch.rocketDetails.success_rate_pct %>%</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-400">Stages</span>
+                        <span class="font-bold"><%= launch.rocketDetails.stages %></span>
+                    </div>
+                    <p class="text-xs text-gray-500 pt-2 leading-relaxed"><%= launch.rocketDetails.description %></p>
+                    <% } %>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (launch.launch_service_provider) { %>
+            <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-2xl sm:rounded-3xl">
+                <h4 class="text-base font-bold mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    Agency
+                </h4>
+                <p class="font-bold text-blue-400 text-sm"><%= launch.launch_service_provider.name %></p>
+                <p class="text-xs text-gray-400 uppercase tracking-widest mt-1"><%= launch.launch_service_provider.type %></p>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+const missionData = {
+    name: "<%= launch.name %>",
+    details: "<%= launch.mission ? launch.mission.description.replace(/"/g, '&quot;').replace(/\n/g,'') : (launch.details ? launch.details.replace(/"/g, '&quot;').replace(/\n/g,'') : 'Global space mission.') %>",
+    rocket: "<%= launch.rocketDetails ? launch.rocketDetails.name : (launch.rocket && launch.rocket.configuration ? launch.rocket.configuration.name : 'Unknown') %>",
+    launchpad: "<%= launch.pad ? launch.pad.name : (launch.launchpadDetails ? launch.launchpadDetails.full_name : 'Unknown') %>"
+};
+</script>

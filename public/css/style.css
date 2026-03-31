@@ -1,0 +1,112 @@
+:root {
+    --space-dark: #0a0b10;
+    --blue-500: #3b82f6;
+}
+
+body {
+    background-color: var(--space-dark);
+    color: white;
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--space-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1f2937;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+}
+
+/* Glassmorphism utility */
+.glass {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.float-animation {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* ISS 3D Model Styling */
+.iss-model {
+    position: relative;
+    width: 40px;
+    height: 15px;
+    background: transparent;
+    transform-style: preserve-3d;
+    animation: rotateISS 10s linear infinite;
+}
+
+.iss-body {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: #ccc;
+    transform: translate(-50%, -50%);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.iss-solar-panels {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    background: #4a90e2;
+    transform: translate(-50%, -50%);
+    border: 1px solid #2a5a8e;
+}
+
+.iss-solar-panels::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 15px;
+    background: #666;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes rotateISS {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+}
+
+/* Globe Styling */
+#globe-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Leaflet Overrides */
+.leaflet-container {
+    background: #0f172a !important;
+}
+
+.leaflet-tile {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}

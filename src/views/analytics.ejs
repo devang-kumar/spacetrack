@@ -1,0 +1,255 @@
+<div class="py-8 sm:py-12">
+    <div class="flex items-center justify-between mb-6 sm:mb-10">
+        <h1 class="text-3xl sm:text-4xl font-bold font-space">Mission <span class="text-blue-500">Analytics</span></h1>
+    </div>
+
+    <%- include('partials/data-timeline', { sources: ['spacex', 'll2'], pageNote: 'SpaceX all-time | Agency breakdown: last ~250 launches' }) %>
+
+    <!-- Global Overview Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-12">
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
+            <p class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">Total (SpaceX)</p>
+            <p class="text-3xl sm:text-4xl font-bold"><%= stats.total %></p>
+        </div>
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
+            <p class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">Success Rate</p>
+            <p class="text-3xl sm:text-4xl font-bold text-green-400"><%= ((stats.success / (stats.success + stats.failure)) * 100).toFixed(1) %>%</p>
+        </div>
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
+            <p class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">Upcoming</p>
+            <p class="text-3xl sm:text-4xl font-bold text-blue-500"><%= stats.upcoming %></p>
+        </div>
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
+            <p class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">Failures</p>
+            <p class="text-3xl sm:text-4xl font-bold text-red-500"><%= stats.failure %></p>
+        </div>
+    </div>
+
+    <!-- SpaceX Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-8 rounded-3xl">
+            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+                SpaceX — Launches Per Year
+            </h3>
+            <canvas id="launchesYearChart"></canvas>
+        </div>
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-8 rounded-3xl">
+            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                SpaceX — Rocket Distribution
+            </h3>
+            <canvas id="rocketUsageChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ── Per-Agency Analytics ─────────────────────────────────────────── -->
+    <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-2xl font-bold font-space">Agency <span class="text-blue-500">Breakdown</span></h2>
+        <p class="text-xs text-gray-500">Top agencies by launch volume · source: Launch Library 2</p>
+    </div>
+
+    <!-- Agency Tab Pills -->
+    <div class="flex flex-wrap gap-2 mb-8" id="agency-tabs">
+        <% agencyStats.forEach((agency, i) => { %>
+        <button
+            data-agency="<%= i %>"
+            class="agency-tab <%= i === 0 ? 'border-blue-500 bg-blue-500/20 text-blue-400' : 'border-white/10 bg-white/5 text-gray-400 hover:border-blue-500/40 hover:text-blue-400' %> px-4 py-2 rounded-xl text-xs font-bold border transition-all">
+            <%= agency.abbrev %>
+        </button>
+        <% }) %>
+    </div>
+
+    <!-- Agency Panels -->
+    <% agencyStats.forEach((agency, i) => { %>
+    <div id="agency-panel-<%= i %>" class="agency-panel <%= i !== 0 ? 'hidden' : '' %>">
+
+        <!-- Agency Header -->
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 mb-6 flex flex-col md:flex-row md:items-center gap-6">
+            <% if (agency.logo) { %>
+            <div class="w-16 h-16 flex-shrink-0 bg-white/5 rounded-2xl flex items-center justify-center p-2 border border-white/10">
+                <img src="<%= agency.logo %>" alt="<%= agency.name %>" class="w-full h-full object-contain">
+            </div>
+            <% } else { %>
+            <div class="w-16 h-16 flex-shrink-0 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
+                <span class="text-xl font-bold text-blue-400"><%= agency.abbrev.slice(0,2) %></span>
+            </div>
+            <% } %>
+            <div class="flex-1">
+                <div class="flex flex-wrap items-center gap-3 mb-1">
+                    <h3 class="text-xl font-bold font-space"><%= agency.name %></h3>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-400"><%= agency.type %></span>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-400"><%= agency.country %></span>
+                </div>
+                <p class="text-sm text-gray-500">
+                    <%= agency.total %> launches in dataset
+                    <% if (agency.firstDate && agency.lastDate) { %>
+                    · <span class="text-blue-500/70 font-mono text-xs"><%= new Date(agency.firstDate).getFullYear() %> – <%= new Date(agency.lastDate).getFullYear() %></span>
+                    <% } %>
+                </p>
+            </div>
+            <!-- Quick stat pills -->
+            <div class="flex gap-2 sm:gap-3 flex-wrap">
+                <div class="text-center px-3 sm:px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-2xl min-w-[60px]">
+                    <p class="text-[10px] text-gray-500 mb-0.5">Success</p>
+                    <p class="text-lg sm:text-xl font-bold text-green-400"><%= agency.success %></p>
+                </div>
+                <div class="text-center px-3 sm:px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-2xl min-w-[60px]">
+                    <p class="text-[10px] text-gray-500 mb-0.5">Failure</p>
+                    <p class="text-lg sm:text-xl font-bold text-red-400"><%= agency.failure %></p>
+                </div>
+                <div class="text-center px-3 sm:px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-2xl min-w-[60px]">
+                    <p class="text-[10px] text-gray-500 mb-0.5">Upcoming</p>
+                    <p class="text-lg sm:text-xl font-bold text-blue-400"><%= agency.upcoming %></p>
+                </div>
+                <div class="text-center px-3 sm:px-4 py-2 bg-white/5 border border-white/10 rounded-2xl min-w-[60px]">
+                    <p class="text-[10px] text-gray-500 mb-0.5">Rate</p>
+                    <p class="text-lg sm:text-xl font-bold text-white">
+                        <%= agency.success + agency.failure > 0 ? ((agency.success / (agency.success + agency.failure)) * 100).toFixed(0) : '--' %>%
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agency Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Launches per year -->
+            <div class="lg:col-span-2 bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
+                <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-5">Launches per year</h4>
+                <canvas id="agency-year-chart-<%= i %>" height="120"></canvas>
+            </div>
+            <!-- Rocket breakdown -->
+            <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
+                <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-5">Rocket usage</h4>
+                <canvas id="agency-rocket-chart-<%= i %>" height="120"></canvas>
+            </div>
+        </div>
+
+        <!-- Success vs Failure bar -->
+        <div class="bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl mb-2">
+            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Outcome breakdown</h4>
+            <% const total = agency.success + agency.failure + agency.upcoming; %>
+            <% const successPct = total > 0 ? (agency.success / total * 100).toFixed(1) : 0; %>
+            <% const failPct    = total > 0 ? (agency.failure / total * 100).toFixed(1) : 0; %>
+            <% const upPct      = total > 0 ? (agency.upcoming / total * 100).toFixed(1) : 0; %>
+            <div class="flex rounded-xl overflow-hidden h-6 mb-3">
+                <% if (successPct > 0) { %>
+                <div style="width:<%= successPct %>%" class="bg-green-500 flex items-center justify-center">
+                    <span class="text-[10px] font-bold text-white"><%= successPct %>%</span>
+                </div>
+                <% } %>
+                <% if (upPct > 0) { %>
+                <div style="width:<%= upPct %>%" class="bg-blue-500 flex items-center justify-center">
+                    <span class="text-[10px] font-bold text-white"><%= upPct %>%</span>
+                </div>
+                <% } %>
+                <% if (failPct > 0) { %>
+                <div style="width:<%= failPct %>%" class="bg-red-500 flex items-center justify-center">
+                    <span class="text-[10px] font-bold text-white"><%= failPct %>%</span>
+                </div>
+                <% } %>
+            </div>
+            <div class="flex gap-4 text-xs text-gray-500">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>Success</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>Upcoming</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>Failure</span>
+            </div>
+        </div>
+
+    </div>
+    <% }) %>
+
+</div>
+
+<script>
+const chartData = {
+    byYear:   <%- JSON.stringify(stats.byYear) %>,
+    byRocket: <%- JSON.stringify(stats.byRocket) %>
+};
+const agencyData = <%- JSON.stringify(agencyStats) %>;
+
+const CHART_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899','#84cc16','#a78bfa'];
+
+const chartDefaults = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } }
+    }
+};
+
+// SpaceX year chart
+const yearCtx = document.getElementById('launchesYearChart');
+if (yearCtx) {
+    const years  = Object.keys(chartData.byYear).sort();
+    const counts = years.map(y => chartData.byYear[y]);
+    new Chart(yearCtx, {
+        type: 'line',
+        data: {
+            labels: years,
+            datasets: [{ label: 'Launches', data: counts, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#3b82f6' }]
+        },
+        options: { ...chartDefaults, plugins: { legend: { display: false } } }
+    });
+}
+
+// SpaceX rocket doughnut
+const rocketCtx = document.getElementById('rocketUsageChart');
+if (rocketCtx) {
+    const rockets = Object.keys(chartData.byRocket);
+    const counts  = rockets.map(r => chartData.byRocket[r]);
+    new Chart(rocketCtx, {
+        type: 'doughnut',
+        data: { labels: rockets, datasets: [{ data: counts, backgroundColor: CHART_COLORS, borderWidth: 0, hoverOffset: 16 }] },
+        options: { responsive: true, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 14, font: { size: 11 } } } } }
+    });
+}
+
+// Per-agency charts
+agencyData.forEach((agency, i) => {
+    // Year bar chart
+    const yCtx = document.getElementById(`agency-year-chart-${i}`);
+    if (yCtx) {
+        const years  = Object.keys(agency.byYear).sort();
+        const counts = years.map(y => agency.byYear[y]);
+        new Chart(yCtx, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [{ label: 'Launches', data: counts, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + 'cc', borderRadius: 6, borderSkipped: false }]
+            },
+            options: { ...chartDefaults }
+        });
+    }
+
+    // Rocket doughnut
+    const rCtx = document.getElementById(`agency-rocket-chart-${i}`);
+    if (rCtx) {
+        const rockets = Object.keys(agency.rockets).slice(0, 6);
+        const counts  = rockets.map(r => agency.rockets[r]);
+        new Chart(rCtx, {
+            type: 'doughnut',
+            data: { labels: rockets, datasets: [{ data: counts, backgroundColor: CHART_COLORS, borderWidth: 0, hoverOffset: 12 }] },
+            options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 10, font: { size: 10 }, boxWidth: 10 } } } }
+        });
+    }
+});
+
+// Tab switching
+document.querySelectorAll('.agency-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const idx = btn.dataset.agency;
+
+        document.querySelectorAll('.agency-tab').forEach(b => {
+            b.classList.remove('border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+            b.classList.add('border-white/10', 'bg-white/5', 'text-gray-400');
+        });
+        btn.classList.add('border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+        btn.classList.remove('border-white/10', 'bg-white/5', 'text-gray-400');
+
+        document.querySelectorAll('.agency-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById(`agency-panel-${idx}`).classList.remove('hidden');
+    });
+});
+</script>

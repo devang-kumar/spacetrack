@@ -1,0 +1,4 @@
+{
+  "ignore": ["node_modules", "public", "response.html", "*.log"],
+  "ext": "js,json,ejs"
+}

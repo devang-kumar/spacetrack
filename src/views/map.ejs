@@ -1,0 +1,469 @@
+<div class="py-10">
+    <div class="flex items-center justify-between mb-4 sm:mb-6">
+        <h1 class="text-3xl sm:text-4xl font-bold font-space">Live Mission <span class="text-blue-500">Map</span></h1>
+        <p class="text-gray-400 text-xs sm:text-sm hidden sm:block">Global launches + live ISS tracking</p>
+    </div>
+
+    <!-- Country Stats Bar -->
+    <div id="country-stats" class="flex flex-wrap gap-2 mb-5"></div>
+
+    <%- include('partials/data-timeline', { sources: ['ll2', 'iss'], pageNote: 'Globe shows 10 years of launches + upcoming' }) %>
+
+    <!-- Timeline Controls -->
+    <div class="bg-black/50 backdrop-blur-xl border border-white/10 rounded-2xl p-5 mb-5">
+        <div class="flex flex-col gap-4">
+            <!-- Year tab pills -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest mr-1">Filter by year</span>
+                <button data-year="all"  class="year-btn active-year px-4 py-1.5 rounded-xl text-xs font-bold border border-blue-500 bg-blue-500/20 text-blue-400 transition-all">All</button>
+            </div>
+            <!-- Range slider row -->
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-gray-500 whitespace-nowrap">Range</span>
+                <input id="timeline-slider" type="range" min="0" max="9" step="1" value="9"
+                    class="flex-1 accent-blue-500 cursor-pointer h-1.5 rounded-full"
+                    style="background:linear-gradient(to right,#3b82f6 100%,rgba(255,255,255,0.1) 100%)">
+                <span id="timeline-label" class="text-xs font-mono text-blue-400 whitespace-nowrap w-28 text-right">All 10 years</span>
+            </div>
+            <!-- Count indicator -->
+            <div class="flex items-center gap-3">
+                <span id="visible-count" class="text-xs text-gray-400">Showing <span id="count-num" class="text-white font-bold">0</span> launches</span>
+                <span class="text-gray-700">·</span>
+                <span id="active-range-label" class="text-xs text-blue-400 font-mono"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black" style="height:60vh;min-height:400px">
+        <div id="globe-container" class="h-full w-full"></div>
+
+        <!-- Active View Badge -->
+        <div class="absolute top-5 left-5 z-[1000]">
+            <div class="bg-black/80 backdrop-blur-xl border border-white/10 px-4 py-3 rounded-2xl">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Active View</p>
+                <h3 class="text-lg font-bold font-space text-blue-500">3D ORBITAL GLOBE</h3>
+            </div>
+        </div>
+
+        <!-- ISS Info Panel — hidden on xs, shown on sm+ -->
+        <div class="hidden sm:block absolute bottom-5 right-5 z-[1000] bg-black/85 backdrop-blur-xl border border-white/10 p-4 sm:p-5 rounded-2xl w-52 sm:w-60">
+            <h4 class="text-sm font-bold mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                ISS Live Tracker
+            </h4>
+            <div class="flex justify-center mb-3">
+                <svg viewBox="0 0 120 60" width="100" height="50" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="27" width="110" height="6" rx="2" fill="#94a3b8"/>
+                    <rect x="48" y="20" width="24" height="20" rx="3" fill="#cbd5e1"/>
+                    <rect x="36" y="23" width="14" height="14" rx="2" fill="#b0bec5"/>
+                    <rect x="70" y="23" width="14" height="14" rx="2" fill="#b0bec5"/>
+                    <rect x="5" y="10" width="38" height="10" rx="1" fill="#3b82f6" opacity="0.9"/>
+                    <rect x="5" y="40" width="38" height="10" rx="1" fill="#3b82f6" opacity="0.9"/>
+                    <rect x="77" y="10" width="38" height="10" rx="1" fill="#3b82f6" opacity="0.9"/>
+                    <rect x="77" y="40" width="38" height="10" rx="1" fill="#3b82f6" opacity="0.9"/>
+                    <line x1="24" y1="20" x2="24" y2="10" stroke="#64748b" stroke-width="1.5"/>
+                    <line x1="24" y1="40" x2="24" y2="50" stroke="#64748b" stroke-width="1.5"/>
+                    <line x1="96" y1="20" x2="96" y2="10" stroke="#64748b" stroke-width="1.5"/>
+                    <line x1="96" y1="40" x2="96" y2="50" stroke="#64748b" stroke-width="1.5"/>
+                    <circle cx="60" cy="17" r="3" fill="#e2e8f0"/>
+                </svg>
+            </div>
+            <div class="space-y-1.5 text-xs">
+                <div class="flex justify-between py-1 border-b border-white/5">
+                    <span class="text-gray-400">Latitude</span>
+                    <span id="iss-lat" class="font-mono text-green-400">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-white/5">
+                    <span class="text-gray-400">Longitude</span>
+                    <span id="iss-lng" class="font-mono text-green-400">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-white/5">
+                    <span class="text-gray-400">Altitude</span>
+                    <span id="iss-alt" class="font-mono text-yellow-400">-- km</span>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-gray-400">Velocity</span>
+                    <span id="iss-vel" class="font-mono text-blue-400">-- km/h</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend — hidden on xs -->
+        <div class="hidden sm:flex absolute bottom-5 left-5 z-[1000] flex-col gap-1.5">
+            <div class="bg-black/80 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                <span class="text-xs font-bold text-gray-300">Upcoming / Other</span>
+            </div>
+            <div class="bg-black/80 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span class="text-xs font-bold text-gray-300">Success</span>
+            </div>
+            <div class="bg-black/80 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                <span class="text-xs font-bold text-gray-300">Failed</span>
+            </div>
+            <div class="bg-black/80 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                <span class="text-xs font-bold text-gray-300">Mixed site</span>
+            </div>
+        </div>
+
+        <!-- Launch Site Detail Panel -->
+        <div id="site-panel" class="hidden absolute inset-y-0 right-0 z-[2000] w-full sm:max-w-md bg-black/95 backdrop-blur-2xl border-l border-white/10 flex flex-col">
+            <div class="flex items-center justify-between p-5 border-b border-white/10 flex-shrink-0">
+                <div>
+                    <p id="site-panel-pad" class="text-xs text-gray-500 uppercase tracking-widest mb-0.5"></p>
+                    <h3 id="site-panel-title" class="text-base font-bold font-space"></h3>
+                </div>
+                <button id="site-panel-close" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-gray-400 hover:text-white flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <!-- Timeline strip inside panel -->
+            <div id="panel-timeline" class="flex gap-1.5 px-4 py-3 border-b border-white/5 flex-wrap flex-shrink-0"></div>
+            <div id="site-panel-grid" class="overflow-y-auto flex-1 p-4 flex flex-col gap-3"></div>
+        </div>
+    </div>
+
+    <!-- Mobile ISS strip (shown only on xs) -->
+    <div class="sm:hidden mt-3 bg-black/60 border border-white/10 rounded-2xl p-4">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            <span class="text-xs font-bold">ISS Live</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex justify-between"><span class="text-gray-400">Lat</span><span id="iss-lat-m" class="font-mono text-green-400">--</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Lng</span><span id="iss-lng-m" class="font-mono text-green-400">--</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Alt</span><span id="iss-alt-m" class="font-mono text-yellow-400">-- km</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Vel</span><span id="iss-vel-m" class="font-mono text-blue-400">-- km/h</span></div>
+        </div>
+    </div>
+    <!-- Mobile legend -->
+    <div class="sm:hidden mt-2 flex flex-wrap gap-2">
+        <span class="bg-black/60 border border-white/10 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs"><span class="w-2 h-2 bg-blue-500 rounded-full"></span>Upcoming</span>
+        <span class="bg-black/60 border border-white/10 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs"><span class="w-2 h-2 bg-green-500 rounded-full"></span>Success</span>
+        <span class="bg-black/60 border border-white/10 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs"><span class="w-2 h-2 bg-red-500 rounded-full"></span>Failed</span>
+        <span class="bg-black/60 border border-white/10 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs"><span class="w-2 h-2 bg-amber-500 rounded-full"></span>Mixed</span>
+    </div>
+</div>
+
+<script>
+const LAUNCH_DATA = <%- launches %>;
+
+(async function initGlobe() {
+    const el = document.getElementById('globe-container');
+    if (!el || typeof Globe === 'undefined') return;
+
+    // ── derive year range ──────────────────────────────────────────────────
+    const NOW_YEAR = new Date().getFullYear();
+    const MIN_YEAR = NOW_YEAR - 9; // 10-year window
+    const YEARS = Array.from({ length: 10 }, (_, i) => MIN_YEAR + i);
+
+    // attach year to each launch
+    LAUNCH_DATA.forEach(l => {
+        l._year = l.date ? new Date(l.date).getFullYear() : null;
+    });
+
+    // ── build year tab pills ───────────────────────────────────────────────
+    const tabRow = document.querySelector('.year-btn').parentElement;
+    YEARS.forEach(y => {
+        const btn = document.createElement('button');
+        btn.dataset.year = y;
+        btn.className = 'year-btn px-4 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-blue-500/50 hover:text-blue-400';
+        btn.textContent = y === NOW_YEAR ? `${y} ★` : y;
+        tabRow.appendChild(btn);
+    });
+
+    // ── country stats (all data) ───────────────────────────────────────────
+    const byCountry = {};
+    LAUNCH_DATA.forEach(l => { const c = l.country || 'Unknown'; byCountry[c] = (byCountry[c] || 0) + 1; });
+    const statsBar = document.getElementById('country-stats');
+    Object.entries(byCountry).sort((a,b) => b[1]-a[1]).forEach(([country, count]) => {
+        const badge = document.createElement('div');
+        badge.className = 'bg-black/50 border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs';
+        badge.innerHTML = `<span class="font-bold text-blue-400">${country}</span><span class="text-gray-400">${count}</span>`;
+        statsBar.appendChild(badge);
+    });
+
+    // ── globe setup ────────────────────────────────────────────────────────
+    const globe = Globe()(el)
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+        .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+        .showAtmosphere(true)
+        .atmosphereColor('lightskyblue')
+        .atmosphereAltitude(0.2);
+
+    globe.controls().autoRotate = true;
+    globe.controls().autoRotateSpeed = 0.4;
+
+    // ── helpers ────────────────────────────────────────────────────────────
+    function statusColor(s) {
+        const v = (s || '').toLowerCase();
+        if (v === 'success') return '#10b981';
+        if (v === 'failure' || v === 'partial failure') return '#ef4444';
+        return '#3b82f6';
+    }
+    function statusLabel(s) {
+        const v = (s || '').toLowerCase();
+        if (v === 'success') return 'SUCCESS';
+        if (v === 'failure') return 'FAILURE';
+        if (v === 'partial failure') return 'PARTIAL';
+        return (s || 'UPCOMING').toUpperCase();
+    }
+
+    function buildPadPoints(launches) {
+        const padMap = {};
+        launches.forEach(l => {
+            const key = `${l.lat.toFixed(2)}_${l.lng.toFixed(2)}`;
+            if (!padMap[key]) padMap[key] = [];
+            padMap[key].push(l);
+        });
+        return Object.values(padMap).map(group => ({
+            ...group[0],
+            launches: group,
+            count: group.length
+        }));
+    }
+
+    function pointColor(d) {
+        if (d.launches.length > 1) {
+            const ss = d.launches.map(l => (l.status || '').toLowerCase());
+            const ok  = ss.some(s => s === 'success');
+            const bad = ss.some(s => s === 'failure' || s === 'partial failure');
+            const up  = ss.some(s => !['success','failure','partial failure'].includes(s));
+            if (up) return '#3b82f6';
+            if (ok && !bad) return '#10b981';
+            if (bad && !ok) return '#ef4444';
+            return '#f59e0b';
+        }
+        return statusColor(d.status);
+    }
+
+    // ── initial render ─────────────────────────────────────────────────────
+    let activeYear = 'all';
+    let sliderYears = 10; // 10-year window by default
+
+    function getFilteredLaunches() {
+        const cutoff = new Date();
+        cutoff.setFullYear(cutoff.getFullYear() - (sliderYears - 1));
+        cutoff.setMonth(0, 1);
+        cutoff.setHours(0, 0, 0, 0);
+
+        return LAUNCH_DATA.filter(l => {
+            if (!l.date) return activeYear === 'all';
+            const d = new Date(l.date);
+            const y = d.getFullYear();
+            if (activeYear !== 'all' && y !== parseInt(activeYear)) return false;
+            if (activeYear === 'all' && d < cutoff) return false;
+            return true;
+        });
+    }
+
+    function refreshGlobe() {
+        const filtered = getFilteredLaunches();
+        const pts = buildPadPoints(filtered);
+        globe.pointsData(pts)
+            .pointLat('lat')
+            .pointLng('lng')
+            .pointColor(pointColor)
+            .pointAltitude(d => d.count > 1 ? 0.07 : 0.04)
+            .pointRadius(d => d.count > 1 ? 0.65 : 0.45)
+            .pointsTransitionDuration(600)
+            .pointLabel(d => `
+                <div style="background:rgba(0,0,0,0.92);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);min-width:160px">
+                    <p style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">${d.country} · ${d.agency}</p>
+                    <p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">${d.padName}</p>
+                    <p style="font-size:11px;color:#94a3b8">${d.count} launch${d.count > 1 ? 'es' : ''} — click to view</p>
+                </div>
+            `)
+            .onPointClick(d => openSitePanel(d));
+
+        document.getElementById('count-num').textContent = filtered.length;
+        updateSliderTrack();
+    }
+
+    // ── slider ─────────────────────────────────────────────────────────────
+    const slider = document.getElementById('timeline-slider');
+    const timelineLabel = document.getElementById('timeline-label');
+    const activeRangeLabel = document.getElementById('active-range-label');
+
+    const SLIDER_LABELS = ['1 year','2 years','3 years','4 years','5 years','6 years','7 years','8 years','9 years','10 years'];
+
+    function updateSliderTrack() {
+        const pct = (slider.value / 9) * 100;
+        slider.style.background = `linear-gradient(to right,#3b82f6 ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
+    }
+
+    slider.addEventListener('input', () => {
+        sliderYears = parseInt(slider.value) + 1;
+        timelineLabel.textContent = SLIDER_LABELS[slider.value];
+        const startY = NOW_YEAR - (sliderYears - 1);
+        activeRangeLabel.textContent = activeYear === 'all' ? `${startY} – ${NOW_YEAR}` : `Year: ${activeYear}`;
+        refreshGlobe();
+    });
+
+    // ── year tab clicks ────────────────────────────────────────────────────
+    document.querySelectorAll('.year-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeYear = btn.dataset.year;
+            document.querySelectorAll('.year-btn').forEach(b => {
+                b.classList.remove('active-year', 'border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+                b.classList.add('border-white/10', 'bg-white/5', 'text-gray-400');
+            });
+            btn.classList.add('active-year', 'border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+            btn.classList.remove('border-white/10', 'bg-white/5', 'text-gray-400');
+
+            const startY = NOW_YEAR - (sliderYears - 1);
+            activeRangeLabel.textContent = activeYear === 'all' ? `${startY} – ${NOW_YEAR}` : `Year: ${activeYear}`;
+            refreshGlobe();
+        });
+    });
+
+    // ── site panel ─────────────────────────────────────────────────────────
+    const panel       = document.getElementById('site-panel');
+    const panelTitle  = document.getElementById('site-panel-title');
+    const panelPad    = document.getElementById('site-panel-pad');
+    const panelGrid   = document.getElementById('site-panel-grid');
+    const panelTL     = document.getElementById('panel-timeline');
+    const closeBtn    = document.getElementById('site-panel-close');
+
+    function openSitePanel(d) {
+        globe.controls().autoRotate = false;
+
+        panelPad.textContent = `${d.country} · ${d.padName}`;
+        panelTitle.textContent = d.launches.length > 1
+            ? `${d.launches.length} launches at this site`
+            : d.launches[0].name;
+
+        // build mini year timeline inside panel
+        const siteYears = {};
+        d.launches.forEach(l => {
+            const y = l._year || 'Unknown';
+            if (!siteYears[y]) siteYears[y] = [];
+            siteYears[y].push(l);
+        });
+
+        panelTL.innerHTML = '';
+        let panelActiveYear = 'all';
+
+        const allPill = makePill('All', true);
+        allPill.addEventListener('click', () => {
+            panelActiveYear = 'all';
+            setPanelYear(panelActiveYear, d.launches, siteYears, panelTL);
+        });
+        panelTL.appendChild(allPill);
+
+        Object.keys(siteYears).sort().forEach(y => {
+            const pill = makePill(`${y} (${siteYears[y].length})`, false);
+            pill.addEventListener('click', () => {
+                panelActiveYear = y;
+                setPanelYear(panelActiveYear, d.launches, siteYears, panelTL);
+            });
+            panelTL.appendChild(pill);
+        });
+
+        renderPanelCards(d.launches);
+        panel.classList.remove('hidden');
+        panel.classList.add('flex');
+    }
+
+    function makePill(label, active) {
+        const p = document.createElement('button');
+        p.textContent = label;
+        p.className = active
+            ? 'panel-pill px-3 py-1 rounded-lg text-xs font-bold border border-blue-500 bg-blue-500/20 text-blue-400'
+            : 'panel-pill px-3 py-1 rounded-lg text-xs font-bold border border-white/10 bg-white/5 text-gray-400 hover:border-blue-500/50 hover:text-blue-400 transition-all';
+        return p;
+    }
+
+    function setPanelYear(y, allLaunches, siteYears, tlEl) {
+        tlEl.querySelectorAll('.panel-pill').forEach(p => {
+            p.classList.remove('border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+            p.classList.add('border-white/10', 'bg-white/5', 'text-gray-400');
+        });
+        const pills = tlEl.querySelectorAll('.panel-pill');
+        if (y === 'all') {
+            pills[0].classList.add('border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+            pills[0].classList.remove('border-white/10', 'bg-white/5', 'text-gray-400');
+            renderPanelCards(allLaunches);
+        } else {
+            const idx = Object.keys(siteYears).sort().indexOf(y) + 1;
+            if (pills[idx]) {
+                pills[idx].classList.add('border-blue-500', 'bg-blue-500/20', 'text-blue-400');
+                pills[idx].classList.remove('border-white/10', 'bg-white/5', 'text-gray-400');
+            }
+            renderPanelCards(siteYears[y] || []);
+        }
+    }
+
+    function renderPanelCards(launches) {
+        panelGrid.innerHTML = '';
+        // sort by date desc
+        const sorted = [...launches].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        sorted.forEach(l => {
+            const color = statusColor(l.status);
+            const card = document.createElement('a');
+            card.href = `/launches/${l.id}`;
+            card.className = 'block bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-4 transition-colors';
+            card.innerHTML = `
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
+                    <p style="font-size:13px;font-weight:700;color:#fff;line-height:1.3">${l.name}</p>
+                    <span style="flex-shrink:0;font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:${color}22;color:${color};border:1px solid ${color}44">${statusLabel(l.status)}</span>
+                </div>
+                <p style="font-size:11px;color:#6b7280;margin-bottom:3px">${l.agency}</p>
+                <p style="font-size:11px;color:#94a3b8">${l.date ? new Date(l.date).toLocaleDateString('en-US',{dateStyle:'medium'}) : 'Date TBD'}</p>
+            `;
+            panelGrid.appendChild(card);
+        });
+    }
+
+    closeBtn.addEventListener('click', () => {
+        panel.classList.add('hidden');
+        panel.classList.remove('flex');
+        globe.controls().autoRotate = true;
+    });
+
+    // ── ISS ────────────────────────────────────────────────────────────────
+    globe.htmlElementsData([{ lat: 0, lng: 0 }])
+        .htmlElement(() => {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'pointer-events:none;transform:translate(-50%,-50%)';
+            wrap.innerHTML = `
+                <svg viewBox="0 0 60 30" width="52" height="26" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 6px #ef4444)">
+                    <rect x="2" y="13" width="56" height="4" rx="1" fill="#94a3b8"/>
+                    <rect x="22" y="9" width="16" height="12" rx="2" fill="#e2e8f0"/>
+                    <rect x="2" y="4" width="22" height="6" rx="1" fill="#3b82f6" opacity="0.95"/>
+                    <rect x="2" y="20" width="22" height="6" rx="1" fill="#3b82f6" opacity="0.95"/>
+                    <rect x="36" y="4" width="22" height="6" rx="1" fill="#3b82f6" opacity="0.95"/>
+                    <rect x="36" y="20" width="22" height="6" rx="1" fill="#3b82f6" opacity="0.95"/>
+                    <circle cx="30" cy="8" r="2" fill="#fbbf24"/>
+                </svg>`;
+            return wrap;
+        });
+
+    async function updateISS() {
+        try {
+            const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+            const d = await r.json();
+            globe.htmlElementsData([{ lat: d.latitude, lng: d.longitude }]);
+            const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+            const lat = d.latitude.toFixed(4) + '°';
+            const lng = d.longitude.toFixed(4) + '°';
+            const alt = Math.round(d.altitude) + ' km';
+            const vel = Math.round(d.velocity).toLocaleString() + ' km/h';
+            set('iss-lat', lat); set('iss-lng', lng); set('iss-alt', alt); set('iss-vel', vel);
+            set('iss-lat-m', lat); set('iss-lng-m', lng); set('iss-alt-m', alt); set('iss-vel-m', vel);
+        } catch(e) { console.warn('ISS fetch error:', e.message); }
+    }
+    updateISS();
+    setInterval(updateISS, 3000);
+
+    window.addEventListener('resize', () => globe.width(el.offsetWidth).height(el.offsetHeight));
+
+    // ── initial render ─────────────────────────────────────────────────────
+    timelineLabel.textContent = 'All 10 years';
+    activeRangeLabel.textContent = `${MIN_YEAR} – ${NOW_YEAR}`;
+    refreshGlobe();
+})();
+</script>
